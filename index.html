@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zukunftstag – Python Programmieren 🐍</title>
+
+<!-- Monaco Editor (VS Code in the browser) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+<style>
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0F0F1E;
+  color: #E2E8F0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Loading screen ──────────────────────────────────────── */
+#loading {
+  position: fixed; inset: 0;
+  background: #0F0F1E;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 18px; z-index: 99;
+}
+.spinner {
+  width: 52px; height: 52px;
+  border: 4px solid #2A2A44;
+  border-top: 4px solid #7C3AED;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading h2  { color: #A78BFA; font-size: 20px; }
+#loading p   { color: #64748B; font-size: 13px; }
+#load-bar-wrap {
+  width: 260px; height: 6px; background: #2A2A44; border-radius: 3px; overflow: hidden;
+}
+#load-bar {
+  height: 100%; width: 0; background: #7C3AED;
+  border-radius: 3px; transition: width 0.3s;
+}
+
+/* ── App shell ───────────────────────────────────────────── */
+#app {
+  display: none;        /* shown after init */
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+header {
+  flex-shrink: 0;
+  background: #1A1A32;
+  border-bottom: 2px solid #7C3AED;
+  padding: 9px 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+header h1 { font-size: 17px; color: #A78BFA; font-weight: 700; }
+header .hint {
+  margin-left: auto;
+  font-size: 11px; color: #475569;
+}
+
+/* ── Main layout ─────────────────────────────────────────── */
+main {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Left panel ──────────────────────────────────────────── */
+#left {
+  width: 440px; min-width: 440px;
+  display: flex; flex-direction: column; gap: 7px;
+  overflow: hidden;
+}
+
+/* Tabs */
+.tab-bar { display: flex; gap: 5px; flex-shrink: 0; }
+.tab {
+  padding: 5px 15px; border: none; border-radius: 6px;
+  background: #2A2A44; color: #94A3B8;
+  font-weight: 700; font-size: 13px; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tab:hover  { background: #3B3B60; color: #E2E8F0; }
+.tab.active { background: #7C3AED; color: white; }
+
+/* Description */
+#desc {
+  flex-shrink: 0;
+  background: #13132A;
+  border: 1px solid #2A2A50;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 11.5px; color: #94A3B8;
+  white-space: pre; line-height: 1.55;
+}
+
+/* Editor label */
+.col-label {
+  font-size: 11px; font-weight: 700; color: #94A3B8;
+  flex-shrink: 0; letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+/* Monaco wrapper */
+#editor {
+  flex: 1; min-height: 0;
+  border: 1px solid #2A2A60;
+  border-radius: 6px; overflow: hidden;
+}
+
+/* Button row */
+.btn-row { display: flex; gap: 7px; flex-shrink: 0; }
+.btn {
+  padding: 6px 15px; border: none; border-radius: 6px;
+  font-weight: 700; font-size: 13px; cursor: pointer;
+  transition: opacity 0.15s, filter 0.15s;
+}
+.btn:disabled { opacity: 0.35; cursor: default; }
+.btn:not(:disabled):hover { filter: brightness(1.15); }
+.btn-run  { background: #16A34A; color: white; }
+.btn-stop { background: #DC2626; color: white; }
+.btn-sol  { background: #7C3AED; color: white; }
+.btn-hint { background: #1D4ED8; color: white; font-size: 11px; padding: 6px 10px; }
+
+/* Shortcut hint */
+.shortcut { font-size: 10px; color: #475569; align-self: center; }
+
+/* Error display */
+#err {
+  flex-shrink: 0; min-height: 16px;
+  font-family: 'Courier New', monospace; font-size: 11px;
+  color: #F87171; white-space: pre-wrap; line-height: 1.4;
+}
+
+/* ── Right panel ─────────────────────────────────────────── */
+#right {
+  display: flex; flex-direction: column; gap: 7px;
+}
+
+#canvas-frame {
+  border: 3px solid #3B3BAA;
+  border-radius: 8px; overflow: hidden;
+  line-height: 0; flex-shrink: 0;
+  box-shadow: 0 0 30px rgba(124,58,237,0.25);
+}
+canvas { display: block; cursor: crosshair; }
+
+#score-row {
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+#score { font-size: 14px; font-weight: 700; color: #E2E8F0; }
+#status { font-size: 12px; color: #64748B; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOADING SCREEN ═══════════════════════ -->
+<div id="loading">
+  <div class="spinner"></div>
+  <h2>Python wird geladen…</h2>
+  <div id="load-bar-wrap"><div id="load-bar"></div></div>
+  <p id="load-msg">Lade Python-Runtime (WebAssembly)…</p>
+</div>
+
+<!-- ═══════════════════ MAIN APP ═════════════════════════════ -->
+<div id="app">
+  <header>
+    <h1>🐍 Zukunftstag – Python Programmieren</h1>
+    <span class="hint">Strg + Enter = Starten</span>
+  </header>
+
+  <main>
+    <!-- ── Left: Editor ── -->
+    <section id="left">
+      <div class="tab-bar">
+        <button class="tab active" id="tab1" onclick="loadTask(1)">🐱 Aufgabe 1</button>
+        <button class="tab"        id="tab2" onclick="loadTask(2)">🍎 Aufgabe 2</button>
+        <button class="tab"        id="tab3" onclick="loadTask(3)">🥚 Aufgabe 3</button>
+      </div>
+
+      <div id="desc"></div>
+
+      <div class="col-label">✏  Dein Code</div>
+      <div id="editor"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-run"  id="btn-run"  onclick="runCode()">▶  Starten</button>
+        <button class="btn btn-stop" id="btn-stop" onclick="stopGame()" disabled>■  Stopp</button>
+        <button class="btn btn-sol"  onclick="showSolution()">💡  Lösung</button>
+        <span class="shortcut">Strg+Enter</span>
+      </div>
+      <div id="err"></div>
+    </section>
+
+    <!-- ── Right: Game ── -->
+    <section id="right">
+      <div class="col-label">🎮  Spielfläche</div>
+      <div id="canvas-frame">
+        <canvas id="cv" width="480" height="360"></canvas>
+      </div>
+      <div id="score-row">
+        <div id="score"></div>
+        <div id="status">→ Wähle eine Aufgabe und klicke "Starten"!</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+
+<!-- ═══════════════════ EXERCISE CONTENT ═════════════════════ -->
+<script>
+const DESCRIPTIONS = {
+  1:
+`Aufgabe 1 – Fliegende Katze 🐱
+────────────────────────────────────────
+Die Katze soll dem Mauszeiger folgen!
+
+Verfügbare Befehle:
+  katze.drehe_zu_maus()    → dreht sich zur Maus
+  katze.gehe(6)            → bewegt sich 6 Pixel
+  katze.beruehrt_maus()    → True = berührt Maus`,
+
+  2:
+`Aufgabe 2 – Fallender Apfel 🍎
+────────────────────────────────────────
+Fange den Apfel mit der Katze!  Ziel: 20 Punkte
+
+Neue Befehle:
+  apfel.y += 5            → Apfel fällt nach unten
+  apfel.beruehrt_rand()   → True = Apfel am Boden
+  apfel.neu_setzen()      → Apfel startet neu oben
+  katze.beruehrt(apfel)   → True = Kollision
+  punkte.aendern(1)       → +1 Punkt`,
+
+  3:
+`Aufgabe 3 – Komplettes Spiel 🐱🍎🥚
+────────────────────────────────────────
+Äpfel fangen = +1 Punkt  |  Eier berühren = −1
+Ziel: 20 Punkte!
+
+Neue Befehle:
+  ei.y += 4                   → Ei fällt
+  ei.beruehrt_rand()          → True = Ei am Boden
+  ei.neu_setzen_mit_pause()   → Wartet 1 Sek., dann neu
+  ei.knacke()                 → Crack-Animation
+  punkte.aendern(-1)          → −1 Punkt
+  ei.in_animation             → True während Animation`,
+};
+
+const TEMPLATES = {
+  1:
+`# ────────────────────────────────────────────
+#  Aufgabe 1: Fliegende Katze
+#  update() wird 60× pro Sekunde aufgerufen!
+# ────────────────────────────────────────────
+
+def update():
+    # SCHRITT 1: Katze dreht sich zur Maus
+    # Tipp: katze.drehe_zu_maus()
+
+
+    # SCHRITT 2: Katze bewegt sich zur Maus
+    #   (nur wenn sie die Maus noch nicht berührt)
+    # Tipp: if not katze.beruehrt_maus():
+    #            katze.gehe(6)
+
+
+    pass  # ← entferne "pass" sobald du Code geschrieben hast
+`,
+  2:
+`# ────────────────────────────────────────────
+#  Aufgabe 2: Fallender Apfel
+# ────────────────────────────────────────────
+
+def update():
+    # --- Katze (aus Aufgabe 1 – schon fertig) ---
+    katze.drehe_zu_maus()
+    if not katze.beruehrt_maus():
+        katze.gehe(6)
+
+    # SCHRITT 1: Apfel fällt nach unten
+    # Tipp: apfel.y += 5
+
+
+    # SCHRITT 2: Apfel am Rand → neu setzen
+    # Tipp: if apfel.beruehrt_rand():
+    #            apfel.neu_setzen()
+
+
+    # SCHRITT 3: Katze fängt Apfel → +1 Punkt!
+    # Tipp: if katze.beruehrt(apfel):
+    #            punkte.aendern(1)
+    #            apfel.neu_setzen()
+
+
+    pass
+`,
+  3:
+`# ────────────────────────────────────────────
+#  Aufgabe 3: Komplettes Spiel
+# ────────────────────────────────────────────
+
+def update():
+    # --- Katze ---
+    katze.drehe_zu_maus()
+    if not katze.beruehrt_maus():
+        katze.gehe(6)
+
+    # --- Apfel (aus Aufgabe 2 – schon fertig) ---
+    apfel.y += 5
+    if apfel.beruehrt_rand():
+        apfel.neu_setzen()
+    if katze.beruehrt(apfel):
+        punkte.aendern(1)
+        apfel.neu_setzen()
+
+    # SCHRITT 1: Ei fällt nach unten
+    # Tipp: ei.y += 4
+
+
+    # SCHRITT 2: Ei am Rand → 1 Sek. Pause + neu setzen
+    # Tipp: if ei.beruehrt_rand():
+    #            ei.neu_setzen_mit_pause()
+
+
+    # SCHRITT 3: Katze berührt Ei → Crack! −1 Punkt
+    # Tipp: if not ei.in_animation and katze.beruehrt(ei):
+    #            ei.knacke()
+    #            punkte.aendern(-1)
+
+
+    pass
+`,
+};
+
+const SOLUTIONS = {
+  1:
+`# ────────────────────────────────────────────
+#  Aufgabe 1 – LÖSUNG ✅
+# ────────────────────────────────────────────
+
+def update():
+    # Schritt 1: Katze dreht sich zur Maus
+    katze.drehe_zu_maus()
+
+    # Schritt 2: Bewegt sich, solange sie die Maus nicht berührt
+    if not katze.beruehrt_maus():
+        katze.gehe(6)
+`,
+  2:
+`# ────────────────────────────────────────────
+#  Aufgabe 2 – LÖSUNG ✅
+# ────────────────────────────────────────────
+
+def update():
+    # --- Katze ---
+    katze.drehe_zu_maus()
+    if not katze.beruehrt_maus():
+        katze.gehe(6)
+
+    # --- Apfel fällt ---
+    apfel.y += 5
+
+    # --- Rand berührt → neu setzen ---
+    if apfel.beruehrt_rand():
+        apfel.neu_setzen()
+
+    # --- Katze fängt Apfel → +1 Punkt ---
+    if katze.beruehrt(apfel):
+        punkte.aendern(1)
+        apfel.neu_setzen()
+`,
+  3:
+`# ────────────────────────────────────────────
+#  Aufgabe 3 – LÖSUNG ✅
+# ────────────────────────────────────────────
+
+def update():
+    # --- Katze ---
+    katze.drehe_zu_maus()
+    if not katze.beruehrt_maus():
+        katze.gehe(6)
+
+    # --- Apfel ---
+    apfel.y += 5
+    if apfel.beruehrt_rand():
+        apfel.neu_setzen()
+    if katze.beruehrt(apfel):
+        punkte.aendern(1)
+        apfel.neu_setzen()
+
+    # --- Ei fällt ---
+    ei.y += 4
+
+    # --- Rand berührt → 1 Sekunde Pause ---
+    if ei.beruehrt_rand():
+        ei.neu_setzen_mit_pause()
+
+    # --- Katze berührt Ei → Crack! −1 Punkt ---
+    if not ei.in_animation and katze.beruehrt(ei):
+        ei.knacke()
+        punkte.aendern(-1)
+`,
+};
+</script>
+
+
+<!-- ═══════════════════ GAME ENGINE (JavaScript) ═════════════ -->
+<script>
+'use strict';
+
+const CW = 480, CH = 360, ZIEL = 20;
+let mouseX = CW / 2, mouseY = CH / 2;
+
+// ── Scratch Cat SVG (embedded, no external request needed) ────
+const _CAT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -60 100 115">
+  <!-- tail (behind body) -->
+  <path d="M16,42 Q44,28 42,6 Q40,-12 26,-6"
+        fill="none" stroke="#FFAB19" stroke-width="11" stroke-linecap="round"/>
+  <!-- body -->
+  <ellipse cx="0" cy="22" rx="25" ry="28" fill="#FFAB19"/>
+  <!-- belly -->
+  <ellipse cx="0" cy="29" rx="16" ry="20" fill="#FFDDA0"/>
+  <!-- body stripes -->
+  <path d="M-21,8 Q0,5 21,8"   fill="none" stroke="#C68700" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M-23,19 Q0,16 23,19" fill="none" stroke="#C68700" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- head -->
+  <circle cx="0" cy="-18" r="29" fill="#FFAB19"/>
+  <!-- face (cream) -->
+  <ellipse cx="0" cy="-10" rx="21" ry="20" fill="#FFDDA0"/>
+  <!-- left ear -->
+  <polygon points="-29,-22 -38,-55 -9,-33" fill="#FFAB19"/>
+  <polygon points="-28,-24 -34,-49 -11,-32" fill="#FF9999"/>
+  <!-- right ear -->
+  <polygon points="29,-22 38,-55 9,-33" fill="#FFAB19"/>
+  <polygon points="28,-24 34,-49 11,-32" fill="#FF9999"/>
+  <!-- left eye -->
+  <circle cx="-12" cy="-23" r="11" fill="white"/>
+  <circle cx="-10" cy="-22" r="7.5" fill="#333"/>
+  <circle cx="-14" cy="-26" r="3" fill="white"/>
+  <!-- right eye -->
+  <circle cx="12" cy="-23" r="11" fill="white"/>
+  <circle cx="14" cy="-22" r="7.5" fill="#333"/>
+  <circle cx="10" cy="-26" r="3" fill="white"/>
+  <!-- nose -->
+  <path d="M-4,-6 L0,-2 L4,-6 Z" fill="#FF9999"/>
+  <!-- mouth -->
+  <path d="M-7,0 Q0,7 7,0" fill="none" stroke="#C08080" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- whiskers left -->
+  <line x1="-34" y1="-8" x2="-6" y2="-5" stroke="#999" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="-34" y1="-1" x2="-6" y2="-1" stroke="#999" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- whiskers right -->
+  <line x1="6" y1="-5" x2="34" y2="-8" stroke="#999" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="6" y1="-1" x2="34" y2="-1" stroke="#999" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- paws -->
+  <ellipse cx="-16" cy="48" rx="12" ry="9" fill="#FFAB19"/>
+  <ellipse cx="16"  cy="48" rx="12" ry="9" fill="#FFAB19"/>
+</svg>`;
+
+const _catImg = new Image();
+_catImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_CAT_SVG);
+let _catReady = false;
+_catImg.onload = () => { _catReady = true; };
+
+// ── Katze ─────────────────────────────────────────────────────
+class Katze {
+  constructor() {
+    this.x = CW / 2;  this.y = CH / 2;
+    this._a = 0;       // angle radians: 0 = facing up
+    this.RADIUS = 26;
+  }
+  drehe_zu_maus() {
+    this._a = Math.atan2(mouseY - this.y, mouseX - this.x) + Math.PI / 2;
+  }
+  gehe(s) {
+    this.x = Math.max(this.RADIUS, Math.min(CW - this.RADIUS, this.x + Math.sin(this._a) * s));
+    this.y = Math.max(this.RADIUS, Math.min(CH  - this.RADIUS, this.y - Math.cos(this._a) * s));
+  }
+  beruehrt_maus() {
+    return Math.hypot(mouseX - this.x, mouseY - this.y) < this.RADIUS + 8;
+  }
+  beruehrt(obj) {
+    return Math.hypot(obj.x - this.x, obj.y - this.y) < this.RADIUS + (obj.RADIUS || 15);
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this._a);
+    // Draw Scratch cat: viewBox is -50,-60 to 50,55 → render at 90×103px centred
+    if (_catReady) {
+      ctx.drawImage(_catImg, -45, -54, 90, 103);
+    } else {
+      // Fallback: simple orange circle while image loads
+      ctx.fillStyle = '#FFAB19';
+      ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// ── Apfel ─────────────────────────────────────────────────────
+class Apfel {
+  constructor() { this.RADIUS = 16;  this.reset(); }
+  reset()         { this.x = 30 + Math.random() * (CW - 60);  this.y = -20; }
+  neu_setzen()    { this.reset(); }
+  beruehrt_rand() { return this.y > CH + 20; }
+  draw(ctx) {
+    ctx.save(); ctx.translate(this.x, this.y);
+    ctx.fillStyle = '#CC2020'; ctx.strokeStyle = '#881010'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(0, 0, this.RADIUS, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#FF6060';
+    ctx.beginPath(); ctx.ellipse(-5, -6, 5, 3.5, -0.5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#553311'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -this.RADIUS); ctx.lineTo(2, -this.RADIUS - 7); ctx.stroke();
+    ctx.fillStyle = '#33AA33';
+    ctx.beginPath(); ctx.ellipse(5, -this.RADIUS - 5, 5.5, 3.5, -0.5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ── Ei ────────────────────────────────────────────────────────
+class Ei {
+  constructor() {
+    this.RADIUS = 14;
+    this._x = 0;  this._y = 0;
+    this._crack = 0;  this._wait = 0;
+    this.reset();
+  }
+  reset() {
+    this._x = 30 + Math.random() * (CW - 60);
+    this._y = -20;
+    this._crack = 0;  this._wait = 0;
+  }
+  // Getters / setters so  ei.y += 4  is frozen during animations
+  get x()  { return this._x; }  set x(v) { this._x = +v; }
+  get y()  { return this._y; }
+  set y(v) { if (!this.in_animation) this._y = +v; }
+  get in_animation() { return this._crack > 0 || this._wait > 0; }
+
+  neu_setzen()           { this.reset(); }
+  beruehrt_rand()        { return !this.in_animation && this._y > CH + 20; }
+  neu_setzen_mit_pause() { this._wait = 60;  this._y = CH + 300; }
+  knacke()               { this._crack = 60; }
+
+  tick() {
+    if      (this._crack > 0) { if (--this._crack === 0) this.reset(); }
+    else if (this._wait  > 0) { if (--this._wait  === 0) this.reset(); }
+  }
+  draw(ctx) {
+    if (this._wait > 0) return;
+    const cracked = this._crack > 0;
+    ctx.save(); ctx.translate(this._x, this._y);
+    ctx.fillStyle   = cracked ? '#FFE060' : '#FFFCE8';
+    ctx.strokeStyle = cracked ? '#CC9900' : '#BBBB88';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 0, 14, 18, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    if (cracked) {
+      ctx.strokeStyle = '#886600'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(-5,-4); ctx.lineTo(5,6); ctx.stroke();
+      ctx.fillStyle = '#CC0000'; ctx.font = 'bold 13px Arial';
+      ctx.fillText('Crack!', 18, -12);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath(); ctx.ellipse(-5, -9, 5, 3, -0.3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// ── Punkte ────────────────────────────────────────────────────
+class Punkte {
+  constructor() { this.wert = 0; }
+  aendern(n) { this.wert += +n; }
+}
+
+// ── Game state ────────────────────────────────────────────────
+let katzeObj = null, apfelObj = null, eiObj = null, punkteObj = null;
+let running = false, updateFn = null;
+
+const canvas = document.getElementById('cv');
+const ctx    = canvas.getContext('2d');
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouseX = e.clientX - r.left;
+  mouseY = e.clientY - r.top;
+});
+
+// ── Background helpers ────────────────────────────────────────
+function drawBg() {
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, CH - 45);
+  sky.addColorStop(0, '#5BA8DC');
+  sky.addColorStop(1, '#A0D4F0');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, CW, CH - 45);
+
+  // Clouds
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  for (const [cx, cy, r] of [[65,40,30],[57,45,22],[77,46,20],[200,28,28],[192,33,20],[212,34,18],[372,52,25],[364,57,18],[384,58,16]]) {
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Meadow
+  ctx.fillStyle = '#5DA832';
+  ctx.fillRect(0, CH - 45, CW, 45);
+  ctx.fillStyle = '#6DC840';
+  ctx.fillRect(0, CH - 45, CW, 8);
+
+  // Sun
+  ctx.fillStyle = '#FFD700';
+  ctx.beginPath(); ctx.arc(CW - 42, 36, 28, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,220,0,0.25)';
+  ctx.beginPath(); ctx.arc(CW - 42, 36, 40, 0, Math.PI*2); ctx.fill();
+}
+
+function drawHUD() {
+  if (!punkteObj) return;
+  const p = punkteObj.wert;
+  // Score pill
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath(); ctx.roundRect(8, 6, 200, 28, 6); ctx.fill();
+  ctx.fillStyle = 'white'; ctx.font = 'bold 15px Arial';
+  ctx.fillText(`⭐ Punkte: ${p}`, 16, 25);
+  // Progress bar
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath(); ctx.roundRect(10, 38, CW - 20, 7, 3); ctx.fill();
+  const bw = Math.max(0, Math.min(1, p / ZIEL)) * (CW - 20);
+  if (bw > 0) {
+    ctx.fillStyle = '#22C55E';
+    ctx.beginPath(); ctx.roundRect(10, 38, bw, 7, 3); ctx.fill();
+  }
+  // External label
+  document.getElementById('score').textContent = `Punkte: ${p}  /  Ziel: ${ZIEL}`;
+}
+
+function drawMouseDot() {
+  // Small glowing target dot so the player can always see the cursor
+  ctx.save();
+  ctx.beginPath(); ctx.arc(mouseX, mouseY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(mouseX, mouseY, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+}
+
+function drawWinOverlay() {
+  ctx.fillStyle = 'rgba(220,252,231,0.93)';
+  ctx.beginPath(); ctx.roundRect(40, 75, CW - 80, 195, 14); ctx.fill();
+  ctx.strokeStyle = '#16A34A'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect(40, 75, CW - 80, 195, 14); ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#15803D'; ctx.font = 'bold 34px Arial';
+  ctx.fillText('🏆  GEWONNEN!  🏆', CW / 2, 138);
+  ctx.fillStyle = '#166534'; ctx.font = '15px Arial';
+  ctx.fillText(`Du hast ${ZIEL} Punkte gesammelt!`, CW / 2, 178);
+  ctx.fillStyle = '#4B7850'; ctx.font = '12px Arial';
+  ctx.fillText('Klicke "Starten" für eine neue Runde 🔄', CW / 2, 218);
+  ctx.textAlign = 'left';
+}
+
+function drawStartScreen() {
+  drawBg();
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.roundRect(CW/2 - 175, CH/2 - 25, 350, 50, 8); ctx.fill();
+  ctx.fillStyle = 'white'; ctx.font = 'bold 14px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('Wähle eine Aufgabe und klicke "Starten"!', CW/2, CH/2 + 6);
+  ctx.textAlign = 'left';
+}
+
+// ── Game loop ─────────────────────────────────────────────────
+function gameLoop() {
+  if (!running) return;
+
+  try {
+    updateFn();
+  } catch (e) {
+    const msg = (e.message || String(e)).split('\n').filter(l => l.trim()).pop();
+    setErr('❌ Laufzeit-Fehler: ' + msg);
+    _stopGame();
+    return;
+  }
+
+  if (eiObj) eiObj.tick();
+
+  // Draw frame
+  ctx.clearRect(0, 0, CW, CH);
+  drawBg();
+  if (apfelObj) apfelObj.draw(ctx);
+  if (eiObj)    eiObj.draw(ctx);
+  if (katzeObj) katzeObj.draw(ctx);
+  drawHUD();
+  drawMouseDot();   // always visible target the cat chases
+
+  // Win check
+  if (punkteObj && punkteObj.wert >= ZIEL) {
+    running = false;
+    drawWinOverlay();
+    document.getElementById('btn-run').disabled  = false;
+    document.getElementById('btn-stop').disabled = true;
+    document.getElementById('status').textContent = '🏆 GEWONNEN! Herzlichen Glückwunsch!';
+    return;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+function _stopGame() {
+  running = false;
+  if (updateFn) { try { updateFn.destroy(); } catch(e){} updateFn = null; }
+  document.getElementById('btn-run').disabled  = false;
+  document.getElementById('btn-stop').disabled = true;
+}
+</script>
+
+
+<!-- ═══════════════════ APP LOGIC + INIT ═════════════════════ -->
+<script>
+'use strict';
+
+let pyodide = null;
+let editor  = null;
+let currentTask = 1;
+
+function setErr(msg) { document.getElementById('err').textContent = msg; }
+function clrErr()    { document.getElementById('err').textContent = ''; }
+
+// ── Task management ───────────────────────────────────────────
+function loadTask(n) {
+  stopGame();
+  currentTask = n;
+  for (let i = 1; i <= 3; i++)
+    document.getElementById(`tab${i}`).classList.toggle('active', i === n);
+  document.getElementById('desc').textContent = DESCRIPTIONS[n];
+  if (editor) editor.setValue(TEMPLATES[n]);
+  clrErr();
+  drawStartScreen();
+  document.getElementById('score').textContent  = '';
+  document.getElementById('status').textContent = '→ Wähle eine Aufgabe und klicke "Starten"!';
+}
+
+function showSolution() {
+  stopGame();
+  if (editor) editor.setValue(SOLUTIONS[currentTask]);
+  clrErr();
+}
+
+// ── Run code ──────────────────────────────────────────────────
+async function runCode() {
+  if (!pyodide || !editor) return;
+  stopGame();
+  clrErr();
+
+  const n    = currentTask;
+  const code = editor.getValue();
+
+  // Create fresh game objects
+  katzeObj  = new Katze();
+  apfelObj  = n >= 2 ? new Apfel() : null;
+  eiObj     = n >= 3 ? new Ei()    : null;
+  punkteObj = new Punkte();
+
+  // Expose JS objects to Python
+  pyodide.globals.set('katze',  katzeObj);
+  pyodide.globals.set('apfel',  apfelObj);
+  pyodide.globals.set('ei',     eiObj);
+  pyodide.globals.set('punkte', punkteObj);
+
+  // Execute student code (defines update())
+  try {
+    await pyodide.runPythonAsync(code);
+  } catch (e) {
+    const raw   = e.message || String(e);
+    const lines = raw.split('\n').filter(l => l.trim());
+    const last  = lines[lines.length - 1] || raw;
+    const lineM = raw.match(/line (\d+)/);
+    setErr(`❌ ${last}${lineM ? '  (Zeile ' + lineM[1] + ')' : ''}`);
+    return;
+  }
+
+  const fn = pyodide.globals.get('update');
+  if (!fn || fn.type !== 'function') {
+    setErr("❌ Keine update()-Funktion gefunden!\n   Schreibe 'def update():' in deinen Code.");
+    return;
+  }
+  updateFn = fn;
+
+  // Start loop
+  running = true;
+  document.getElementById('btn-run').disabled  = true;
+  document.getElementById('btn-stop').disabled = false;
+  document.getElementById('score').textContent  = `Punkte: 0  /  Ziel: ${ZIEL}`;
+  document.getElementById('status').textContent = '▶ Spiel läuft – bewege die Maus über die Spielfläche!';
+  requestAnimationFrame(gameLoop);
+}
+
+function stopGame() {
+  _stopGame();
+  document.getElementById('status').textContent = '■ Gestoppt';
+  document.getElementById('score').textContent  = '';
+}
+
+// ── Initialisation ────────────────────────────────────────────
+async function init() {
+  const loadBar = document.getElementById('load-bar');
+  const loadMsg = document.getElementById('load-msg');
+
+  // 1. Load Monaco Editor
+  loadMsg.textContent = 'Lade Code-Editor…';
+  loadBar.style.width = '20%';
+
+  await new Promise(resolve => {
+    window.MonacoEnvironment = {
+      getWorkerUrl: () => `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+        self.MonacoEnvironment = {
+          baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/'
+        };
+        importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/base/worker/workerMain.js');
+      `)}`
+    };
+    require.config({
+      paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }
+    });
+    require(['vs/editor/editor.main'], () => {
+      editor = monaco.editor.create(document.getElementById('editor'), {
+        value:                  TEMPLATES[1],
+        language:               'python',
+        theme:                  'vs-dark',
+        fontSize:               12,
+        lineHeight:             19,
+        fontFamily:             "'Fira Code', 'Cascadia Code', 'Courier New', monospace",
+        fontLigatures:          true,
+        minimap:                { enabled: false },
+        scrollBeyondLastLine:   false,
+        automaticLayout:        true,
+        renderLineHighlight:    'line',
+        tabSize:                4,
+        insertSpaces:           true,
+        wordWrap:               'off',
+        scrollbar:              { verticalScrollbarSize: 6, horizontalScrollbarSize: 6 },
+        lineNumbers:            'on',
+        glyphMargin:            false,
+        folding:                false,
+        padding:                { top: 8, bottom: 8 },
+      });
+      // Ctrl/Cmd + Enter = Run
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+        () => runCode()
+      );
+      resolve();
+    });
+  });
+
+  loadBar.style.width = '50%';
+  loadMsg.textContent = 'Lade Python-Runtime (WebAssembly)…';
+
+  // 2. Load Pyodide
+  try {
+    pyodide = await loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/'
+    });
+  } catch (e) {
+    document.getElementById('loading').innerHTML = `
+      <div style="text-align:center;padding:30px">
+        <p style="color:#F87171;font-size:16px">❌ Python konnte nicht geladen werden.</p>
+        <p style="color:#64748B;margin-top:8px">Bitte Internetverbindung prüfen und die Seite neu laden.</p>
+      </div>`;
+    return;
+  }
+
+  loadBar.style.width = '100%';
+  loadMsg.textContent = 'Fertig!';
+
+  // 3. Show app
+  await new Promise(r => setTimeout(r, 300));
+  document.getElementById('loading').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+
+  // 4. Load first task
+  loadTask(1);
+}
+
+// Kick off
+init();
+</script>
+
+<!-- Pyodide (loads Python runtime via WebAssembly) -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+</body>
+</html>
