@@ -125,6 +125,33 @@ main {
   overflow: hidden;
 }
 
+/* Mode toggle */
+.mode-row {
+  display: flex; gap: 6px; flex-shrink: 0;
+}
+.mode-btn {
+  flex: 1; padding: 7px 12px; border: none; border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600; font-size: 12px; cursor: pointer;
+  background: rgba(96,165,250,0.07);
+  border: 1px solid #1E4070;
+  color: #4D80B8;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+  letter-spacing: 0.02em;
+}
+.mode-btn:hover:not(.active) { background: rgba(96,165,250,0.12); color: #93C5FD; }
+.mode-btn.active {
+  background: linear-gradient(135deg, #1D4ED8, #2563EB);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 10px rgba(29,78,216,0.45);
+  transform: translateY(-1px);
+}
+#mode-hard.active {
+  background: linear-gradient(135deg, #B45309, #D97706);
+  box-shadow: 0 2px 10px rgba(217,119,6,0.45);
+}
+
 /* Tabs */
 .tab-bar {
   display: flex; gap: 3px; flex-shrink: 0;
@@ -275,6 +302,11 @@ canvas { display: block; cursor: crosshair; width: 100%; height: 100%; }
   <main>
     <!-- ── Left: Editor ── -->
     <section id="left">
+      <div class="mode-row">
+        <button class="mode-btn active" id="mode-easy" onclick="setMode('easy')">Einfach</button>
+        <button class="mode-btn"        id="mode-hard" onclick="setMode('hard')">Schwer ★</button>
+      </div>
+
       <div class="tab-bar">
         <button class="tab active" id="tab1" onclick="loadTask(1)">🐱 Aufgabe 1</button>
         <button class="tab"        id="tab2" onclick="loadTask(2)">🍎 Aufgabe 2</button>
@@ -312,7 +344,8 @@ canvas { display: block; cursor: crosshair; width: 100%; height: 100%; }
 
 <!-- ═══════════════════ EXERCISE CONTENT ═════════════════════ -->
 <script>
-const DESCRIPTIONS = {
+// ── EINFACH (Scratch-style helper methods) ────────────────────
+const DESC_EASY = {
   1:
 `Aufgabe 1 – Fliegende Katze 🐱
 ────────────────────────────────────────
@@ -350,12 +383,9 @@ Neue Befehle:
   ei.in_animation             → True während Animation`,
 };
 
-const TEMPLATES = {
+const TMPL_EASY = {
   1:
-`# ────────────────────────────────────────────
-#  Aufgabe 1: Fliegende Katze
-#  update() wird 60× pro Sekunde aufgerufen!
-# ────────────────────────────────────────────
+`# update() wird 60× pro Sekunde aufgerufen!
 
 def update():
     # SCHRITT 1: Katze dreht sich zur Maus
@@ -371,11 +401,7 @@ def update():
     pass  # ← entferne "pass" sobald du Code geschrieben hast
 `,
   2:
-`# ────────────────────────────────────────────
-#  Aufgabe 2: Fallender Apfel
-# ────────────────────────────────────────────
-
-def update():
+`def update():
     # --- Katze (aus Aufgabe 1 – schon fertig) ---
     katze.drehe_zu_maus()
     if not katze.beruehrt_maus():
@@ -399,11 +425,7 @@ def update():
     pass
 `,
   3:
-`# ────────────────────────────────────────────
-#  Aufgabe 3: Komplettes Spiel
-# ────────────────────────────────────────────
-
-def update():
+`def update():
     # --- Katze ---
     katze.drehe_zu_maus()
     if not katze.beruehrt_maus():
@@ -436,55 +458,38 @@ def update():
 `,
 };
 
-const SOLUTIONS = {
+const SOL_EASY = {
   1:
-`# ────────────────────────────────────────────
-#  Aufgabe 1 – LÖSUNG ✅
-# ────────────────────────────────────────────
+`# Aufgabe 1 – LÖSUNG ✅
 
 def update():
-    # Schritt 1: Katze dreht sich zur Maus
     katze.drehe_zu_maus()
-
-    # Schritt 2: Bewegt sich, solange sie die Maus nicht berührt
     if not katze.beruehrt_maus():
         katze.gehe(6)
 `,
   2:
-`# ────────────────────────────────────────────
-#  Aufgabe 2 – LÖSUNG ✅
-# ────────────────────────────────────────────
+`# Aufgabe 2 – LÖSUNG ✅
 
 def update():
-    # --- Katze ---
     katze.drehe_zu_maus()
     if not katze.beruehrt_maus():
         katze.gehe(6)
 
-    # --- Apfel fällt ---
     apfel.y += 3
-
-    # --- Rand berührt → neu setzen ---
     if apfel.beruehrt_rand():
         apfel.neu_setzen()
-
-    # --- Katze fängt Apfel → +1 Punkt ---
     if katze.beruehrt(apfel):
         punkte.aendern(1)
         apfel.neu_setzen()
 `,
   3:
-`# ────────────────────────────────────────────
-#  Aufgabe 3 – LÖSUNG ✅
-# ────────────────────────────────────────────
+`# Aufgabe 3 – LÖSUNG ✅
 
 def update():
-    # --- Katze ---
     katze.drehe_zu_maus()
     if not katze.beruehrt_maus():
         katze.gehe(6)
 
-    # --- Apfel ---
     apfel.y += 3
     if apfel.beruehrt_rand():
         apfel.neu_setzen()
@@ -492,19 +497,209 @@ def update():
         punkte.aendern(1)
         apfel.neu_setzen()
 
-    # --- Ei fällt ---
     ei.y += 4
-
-    # --- Rand berührt → 1 Sekunde Pause ---
     if ei.beruehrt_rand():
         ei.neu_setzen_mit_pause()
-
-    # --- Katze berührt Ei → Crack! −1 Punkt ---
     if not ei.in_animation and katze.beruehrt(ei):
         ei.knacke()
         punkte.aendern(-1)
 `,
 };
+
+// ── SCHWER (echtes Python – Mathe, kein Scratch-API) ─────────
+const DESC_HARD = {
+  1:
+`Aufgabe 1 – Fliegende Katze ★ (Schwer)
+────────────────────────────────────────
+Bewege die Katze mit echter Mathematik!
+Die Katze dreht sich automatisch zur Maus.
+
+Verfügbare Variablen:
+  katze.x, katze.y    → Position der Katze (lesbar + schreibbar)
+  maus_x,  maus_y     → Position des Mauszeigers
+
+Dein Ziel: Berechne Richtung und Abstand selbst.
+  dx = maus_x - katze.x       → Differenz in x
+  dy = maus_y - katze.y       → Differenz in y
+  abstand = (dx**2 + dy**2) ** 0.5   → Pythagoras!`,
+
+  2:
+`Aufgabe 2 – Fallender Apfel ★ (Schwer)
+────────────────────────────────────────
+Fange den Apfel – diesmal ohne Hilfsfunktionen!
+Ziel: 20 Punkte
+
+Neue Variablen & Funktionen:
+  apfel.x, apfel.y         → Position des Apfels
+  import random
+  random.randint(30, 450)  → Zufallszahl
+  abs(zahl)                → Betrag (immer positiv)
+
+Kollision selbst prüfen:
+  abs(katze.x - apfel.x) < 30
+  and abs(katze.y - apfel.y) < 30`,
+
+  3:
+`Aufgabe 3 – Komplettes Spiel ★ (Schwer)
+────────────────────────────────────────
+Äpfel fangen = +1  |  Eier berühren = −1
+Ziel: 20 Punkte
+
+Neue Variablen:
+  ei.x, ei.y          → Position des Eis
+  ei.in_animation     → True während Crack-Animation
+  ei.knacke()         → startet die Animation
+  ei.neu_setzen_mit_pause()  → 1 Sek. Pause, dann neu
+  punkte.aendern(-1)  → −1 Punkt
+
+Tipp: Kollision für Ei genauso wie für Apfel!`,
+};
+
+const TMPL_HARD = {
+  1:
+`# update() wird 60× pro Sekunde aufgerufen!
+# maus_x / maus_y sind immer aktuell.
+
+def update():
+    # Abstand zur Maus berechnen
+    dx = maus_x - katze.x
+    dy = ___              # was kommt hier hin?
+
+    abstand = (dx**2 + dy**2) ** 0.5
+
+    # Nur bewegen wenn wir noch nicht angekommen sind
+    if abstand > 5:
+        katze.x += dx / abstand * 6
+        katze.y += ___    # gleiche Logik wie x!
+`,
+  2:
+`import random
+
+def update():
+    # --- Katze (aus Aufgabe 1 – schon fertig) ---
+    dx = maus_x - katze.x
+    dy = maus_y - katze.y
+    abstand = (dx**2 + dy**2) ** 0.5
+    if abstand > 5:
+        katze.x += dx / abstand * 6
+        katze.y += dy / abstand * 6
+
+    # SCHRITT 1: Apfel fällt nach unten
+    apfel.y += ___
+
+    # SCHRITT 2: Apfel fällt aus dem Bild → neu setzen
+    if apfel.y > ___:
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+
+    # SCHRITT 3: Kollision prüfen (Abstand < 30 in x UND y)
+    if abs(katze.x - apfel.x) < ___ and abs(katze.y - apfel.y) < ___:
+        punkte.aendern(1)
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+`,
+  3:
+`import random
+
+def update():
+    # --- Katze ---
+    dx = maus_x - katze.x
+    dy = maus_y - katze.y
+    abstand = (dx**2 + dy**2) ** 0.5
+    if abstand > 5:
+        katze.x += dx / abstand * 6
+        katze.y += dy / abstand * 6
+
+    # --- Apfel (aus Aufgabe 2 – schon fertig) ---
+    apfel.y += 3
+    if apfel.y > 360:
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+    if abs(katze.x - apfel.x) < 30 and abs(katze.y - apfel.y) < 30:
+        punkte.aendern(1)
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+
+    # SCHRITT: Ei – fällt es? Kollision? Animation?
+    if not ei.in_animation:
+        ei.y += ___
+
+        if ei.y > ___:
+            ei.neu_setzen_mit_pause()
+        elif abs(katze.x - ei.x) < ___ and abs(katze.y - ei.y) < ___:
+            ei.knacke()
+            punkte.aendern(___)
+`,
+};
+
+const SOL_HARD = {
+  1:
+`# Aufgabe 1 – LÖSUNG ✅ (Schwer)
+
+def update():
+    dx = maus_x - katze.x
+    dy = maus_y - katze.y
+    abstand = (dx**2 + dy**2) ** 0.5
+    if abstand > 5:
+        katze.x += dx / abstand * 6
+        katze.y += dy / abstand * 6
+`,
+  2:
+`# Aufgabe 2 – LÖSUNG ✅ (Schwer)
+import random
+
+def update():
+    dx = maus_x - katze.x
+    dy = maus_y - katze.y
+    abstand = (dx**2 + dy**2) ** 0.5
+    if abstand > 5:
+        katze.x += dx / abstand * 6
+        katze.y += dy / abstand * 6
+
+    apfel.y += 3
+    if apfel.y > 360:
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+    if abs(katze.x - apfel.x) < 30 and abs(katze.y - apfel.y) < 30:
+        punkte.aendern(1)
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+`,
+  3:
+`# Aufgabe 3 – LÖSUNG ✅ (Schwer)
+import random
+
+def update():
+    dx = maus_x - katze.x
+    dy = maus_y - katze.y
+    abstand = (dx**2 + dy**2) ** 0.5
+    if abstand > 5:
+        katze.x += dx / abstand * 6
+        katze.y += dy / abstand * 6
+
+    apfel.y += 3
+    if apfel.y > 360:
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+    if abs(katze.x - apfel.x) < 30 and abs(katze.y - apfel.y) < 30:
+        punkte.aendern(1)
+        apfel.y = -20
+        apfel.x = random.randint(30, 450)
+
+    if not ei.in_animation:
+        ei.y += 4
+        if ei.y > 360:
+            ei.neu_setzen_mit_pause()
+        elif abs(katze.x - ei.x) < 30 and abs(katze.y - ei.y) < 30:
+            ei.knacke()
+            punkte.aendern(-1)
+`,
+};
+
+// Active sets (swapped by setMode)
+let DESCRIPTIONS = DESC_EASY;
+let TEMPLATES    = TMPL_EASY;
+let SOLUTIONS    = SOL_EASY;
 </script>
 
 
@@ -865,6 +1060,14 @@ function drawStartScreen() {
 function gameLoop() {
   if (!running) return;
 
+  // Hard mode: expose current mouse position to Python each frame
+  // Hard mode: cat auto-faces the mouse (student handles movement manually)
+  if (currentMode === 'hard' && katzeObj) {
+    katzeObj._a = Math.atan2(mouseY - katzeObj.y, mouseX - katzeObj.x) + Math.PI / 2;
+    pyodide.globals.set('maus_x', mouseX);
+    pyodide.globals.set('maus_y', mouseY);
+  }
+
   try {
     updateFn();
   } catch (e) {
@@ -914,9 +1117,21 @@ function _stopGame() {
 let pyodide = null;
 let editor  = null;
 let currentTask = 1;
+let currentMode = 'easy';
 
 function setErr(msg) { document.getElementById('err').textContent = msg; }
 function clrErr()    { document.getElementById('err').textContent = ''; }
+
+// ── Mode toggle ───────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  DESCRIPTIONS = mode === 'hard' ? DESC_HARD : DESC_EASY;
+  TEMPLATES    = mode === 'hard' ? TMPL_HARD : TMPL_EASY;
+  SOLUTIONS    = mode === 'hard' ? SOL_HARD  : SOL_EASY;
+  document.getElementById('mode-easy').classList.toggle('active', mode === 'easy');
+  document.getElementById('mode-hard').classList.toggle('active', mode === 'hard');
+  loadTask(currentTask);   // reload current task with new content
+}
 
 // ── Task management ───────────────────────────────────────────
 function loadTask(n) {
@@ -958,6 +1173,9 @@ async function runCode() {
   pyodide.globals.set('apfel',  apfelObj);
   pyodide.globals.set('ei',     eiObj);
   pyodide.globals.set('punkte', punkteObj);
+  // Hard mode: mouse coords as plain Python numbers (updated each frame in gameLoop)
+  pyodide.globals.set('maus_x', mouseX);
+  pyodide.globals.set('maus_y', mouseY);
 
   // Execute student code (defines update())
   try {
