@@ -227,20 +227,24 @@ main {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 8px;
   overflow: hidden;
+  justify-content: center;
 }
 
 #canvas-frame {
-  flex: 1; min-height: 0; min-width: 0;
+  /* Width fills the panel; height is derived from 4:3 ratio — no dead space */
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  /* Cap height so it never overflows the right panel vertically */
+  max-height: calc(100vh - 150px);
+  flex-shrink: 1;
   border: 1.5px solid #1E4070;
   border-radius: 14px; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  background: #091525;
   box-shadow:
     0 0 0 1px rgba(96,165,250,0.06),
     0 0 28px rgba(29,78,216,0.2),
     0 12px 40px rgba(0,0,0,0.5);
 }
-canvas { display: block; cursor: crosshair; max-width: 100%; max-height: 100%; }
+canvas { display: block; cursor: crosshair; width: 100%; height: 100%; }
 
 #score-row {
   display: flex; align-items: center; gap: 12px;
@@ -686,22 +690,16 @@ const ctx    = canvas.getContext('2d');
 function fitCanvas() {
   const frame = document.getElementById('canvas-frame');
   const dpr   = window.devicePixelRatio || 1;
-  const fw = frame.clientWidth  - 2;   // subtract border
-  const fh = frame.clientHeight - 2;
+  // CSS aspect-ratio already guarantees the frame is exactly 4:3,
+  // so we just read its rendered size and match the canvas buffer.
+  const fw = frame.clientWidth;
+  const fh = frame.clientHeight;
   if (fw < 10 || fh < 10) return;
 
-  // Fit 4:3 game area into the frame, maintaining aspect ratio
-  const aspect = CW / CH;
-  let dispW = fw, dispH = fw / aspect;
-  if (dispH > fh) { dispH = fh; dispW = fh * aspect; }
-  dispW = Math.floor(dispW);
-  dispH = Math.floor(dispH);
-
-  canvas.style.width  = dispW + 'px';
-  canvas.style.height = dispH + 'px';
-  canvas.width  = dispW * dpr;
-  canvas.height = dispH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // reset + apply DPR scale
+  canvas.width  = Math.round(fw * dpr);
+  canvas.height = Math.round(fh * dpr);
+  // Scale the context so game code draws in CW×CH logical coordinates
+  ctx.setTransform((fw / CW) * dpr, 0, 0, (fh / CH) * dpr, 0, 0);
 
   if (!running) drawStartScreen();
 }
