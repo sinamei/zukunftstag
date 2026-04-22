@@ -667,6 +667,16 @@ let running = false, updateFn = null;
 const canvas = document.getElementById('cv');
 const ctx    = canvas.getContext('2d');
 
+// ── HiDPI / retina fix ────────────────────────────────────────
+(function scaleForDPR() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = CW * dpr;
+  canvas.height = CH * dpr;
+  canvas.style.width  = CW + 'px';
+  canvas.style.height = CH + 'px';
+  ctx.scale(dpr, dpr);
+})();
+
 canvas.addEventListener('mousemove', e => {
   const r = canvas.getBoundingClientRect();
   mouseX = e.clientX - r.left;
