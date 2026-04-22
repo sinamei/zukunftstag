@@ -106,7 +106,7 @@ main {
 
 /* ── Left panel ──────────────────────────────────────────── */
 #left {
-  width: 440px; min-width: 440px;
+  flex: 1; min-width: 320px;
   display: flex; flex-direction: column; gap: 8px;
   overflow: hidden;
 }
@@ -215,13 +215,15 @@ main {
 
 /* ── Right panel ─────────────────────────────────────────── */
 #right {
+  flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 8px;
 }
 
 #canvas-frame {
+  flex: 1; min-height: 0;
   border: 1.5px solid rgba(37,99,235,0.3);
   border-radius: 14px; overflow: hidden;
-  line-height: 0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
   box-shadow:
     0 0 0 1px rgba(37,99,235,0.08),
     0 0 24px rgba(29,78,216,0.22),
@@ -283,7 +285,7 @@ canvas { display: block; cursor: crosshair; }
     <section id="right">
       <div class="col-label">🎮  Spielfläche</div>
       <div id="canvas-frame">
-        <canvas id="cv" width="480" height="360"></canvas>
+        <canvas id="cv"></canvas>
       </div>
       <div id="score-row">
         <div id="score"></div>
@@ -667,15 +669,33 @@ let running = false, updateFn = null;
 const canvas = document.getElementById('cv');
 const ctx    = canvas.getContext('2d');
 
-// ── HiDPI / retina fix ────────────────────────────────────────
-(function scaleForDPR() {
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width  = CW * dpr;
-  canvas.height = CH * dpr;
-  canvas.style.width  = CW + 'px';
-  canvas.style.height = CH + 'px';
-  ctx.scale(dpr, dpr);
-})();
+// ── Responsive + HiDPI canvas ─────────────────────────────────
+// Measures the actual frame size after CSS layout, scales the
+// canvas to fill it while keeping game coords at CW×CH, and
+// multiplies by devicePixelRatio so it's always crisp.
+function fitCanvas() {
+  const frame = document.getElementById('canvas-frame');
+  const dpr   = window.devicePixelRatio || 1;
+  const fw = frame.clientWidth  - 2;   // subtract border
+  const fh = frame.clientHeight - 2;
+  if (fw < 10 || fh < 10) return;
+
+  // Fit 4:3 game area into the frame, maintaining aspect ratio
+  const aspect = CW / CH;
+  let dispW = fw, dispH = fw / aspect;
+  if (dispH > fh) { dispH = fh; dispW = fh * aspect; }
+  dispW = Math.floor(dispW);
+  dispH = Math.floor(dispH);
+
+  canvas.style.width  = dispW + 'px';
+  canvas.style.height = dispH + 'px';
+  canvas.width  = dispW * dpr;
+  canvas.height = dispH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // reset + apply DPR scale
+
+  if (!running) drawStartScreen();
+}
+new ResizeObserver(fitCanvas).observe(document.getElementById('canvas-frame'));
 
 canvas.addEventListener('mousemove', e => {
   const r = canvas.getBoundingClientRect();
