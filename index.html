@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zukunftstag – Python Programmieren 🐍</title>
+<title>Zukunftstag – Python Programmieren</title>
 
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
 
 body {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: #0D0D1F;
+  background: #080D18;
   color: #E2E8F0;
   height: 100vh;
   display: flex;
@@ -30,30 +30,30 @@ body {
 /* ── Loading screen ──────────────────────────────────────── */
 #loading {
   position: fixed; inset: 0;
-  background: #0D0D1F;
+  background: #080D18;
   display: flex; align-items: center; justify-content: center;
   flex-direction: column; gap: 16px; z-index: 99;
 }
 .spinner {
   width: 48px; height: 48px;
-  border: 3px solid rgba(124,58,237,0.15);
-  border-top: 3px solid #7C3AED;
+  border: 3px solid rgba(37,99,235,0.15);
+  border-top: 3px solid #3B82F6;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 #loading h2 {
-  color: #A78BFA; font-size: 18px; font-weight: 600; letter-spacing: 0.01em;
+  color: #93C5FD; font-size: 18px; font-weight: 600; letter-spacing: 0.01em;
 }
-#loading p { color: #4B5563; font-size: 12.5px; }
+#loading p { color: #334155; font-size: 12.5px; }
 #load-bar-wrap {
   width: 240px; height: 5px;
-  background: rgba(124,58,237,0.12);
+  background: rgba(37,99,235,0.1);
   border-radius: 99px; overflow: hidden;
 }
 #load-bar {
   height: 100%; width: 0;
-  background: linear-gradient(90deg, #6D28D9, #A855F7);
+  background: linear-gradient(90deg, #1D4ED8, #60A5FA);
   border-radius: 99px; transition: width 0.3s ease;
 }
 
@@ -68,23 +68,30 @@ body {
 /* ── Header ──────────────────────────────────────────────── */
 header {
   flex-shrink: 0;
-  background: linear-gradient(135deg, #12122A 0%, #1A1A38 100%);
-  border-bottom: 1px solid rgba(124,58,237,0.4);
-  padding: 10px 22px;
+  background: linear-gradient(135deg, #090E1E 0%, #0F1730 100%);
+  border-bottom: 1px solid rgba(37,99,235,0.3);
+  padding: 11px 22px;
   display: flex; align-items: center; gap: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 0 rgba(37,99,235,0.12), 0 4px 16px rgba(0,0,0,0.5);
 }
 header h1 {
-  font-size: 16px; color: #C4B5FD; font-weight: 700;
+  font-size: 15px; color: #BFDBFE; font-weight: 600;
   letter-spacing: -0.01em;
+}
+header .badge {
+  font-size: 10px; font-weight: 700; color: #1E40AF;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+  padding: 2px 8px; border-radius: 99px;
+  letter-spacing: 0.05em; text-transform: uppercase;
 }
 header .hint {
   margin-left: auto;
-  font-size: 11px; color: #374151;
+  font-size: 10.5px; color: #1E3A5F;
   font-family: 'Fira Code', monospace;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.03);
   padding: 3px 8px; border-radius: 5px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 /* ── Main layout ─────────────────────────────────────────── */
@@ -106,54 +113,54 @@ main {
 
 /* Tabs */
 .tab-bar {
-  display: flex; gap: 4px; flex-shrink: 0;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; gap: 3px; flex-shrink: 0;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
   padding: 4px;
 }
 .tab {
   flex: 1; padding: 6px 10px; border: none; border-radius: 7px;
-  background: transparent; color: #6B7280;
+  background: transparent; color: #475569;
   font-family: 'Inter', sans-serif;
   font-weight: 600; font-size: 12.5px; cursor: pointer;
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s;
+  transition: background 0.16s, color 0.16s, box-shadow 0.16s, transform 0.1s;
   letter-spacing: 0.01em;
 }
-.tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: #CBD5E1; }
+.tab:hover:not(.active) { background: rgba(255,255,255,0.04); color: #94A3B8; }
 .tab.active {
-  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  background: linear-gradient(135deg, #1D4ED8, #2563EB);
   color: white;
-  box-shadow: 0 2px 10px rgba(109,40,217,0.5), 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 12px rgba(29,78,216,0.55), 0 1px 3px rgba(0,0,0,0.35);
   transform: translateY(-1px);
 }
 
 /* Description */
 #desc {
   flex-shrink: 0;
-  background: #0F0F24;
-  border: 1px solid rgba(124,58,237,0.18);
-  border-left: 3px solid rgba(124,58,237,0.5);
+  background: #090E1B;
+  border: 1px solid rgba(37,99,235,0.14);
+  border-left: 3px solid rgba(59,130,246,0.45);
   border-radius: 8px;
   padding: 10px 14px;
   font-family: 'Fira Code', 'Courier New', monospace;
-  font-size: 11.5px; color: #94A3B8;
-  white-space: pre; line-height: 1.6;
-  box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
+  font-size: 11.5px; color: #64748B;
+  white-space: pre; line-height: 1.65;
+  box-shadow: inset 0 1px 6px rgba(0,0,0,0.3);
 }
 
 /* Editor label */
 .col-label {
-  font-size: 10.5px; font-weight: 600; color: #6B7280;
-  flex-shrink: 0; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 10px; font-weight: 600; color: #334155;
+  flex-shrink: 0; letter-spacing: 0.08em; text-transform: uppercase;
 }
 
 /* Monaco wrapper */
 #editor {
   flex: 1; min-height: 0;
-  border: 1px solid rgba(124,58,237,0.2);
+  border: 1px solid rgba(37,99,235,0.18);
   border-radius: 8px; overflow: hidden;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
 }
 
 /* Button row */
@@ -162,40 +169,40 @@ main {
   padding: 7px 16px; border: none; border-radius: 8px;
   font-family: 'Inter', sans-serif;
   font-weight: 600; font-size: 13px; cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.15s, filter 0.15s;
+  transition: transform 0.1s, box-shadow 0.14s, filter 0.14s;
   letter-spacing: 0.01em;
 }
-.btn:disabled { opacity: 0.3; cursor: default; transform: none !important; box-shadow: none !important; }
-.btn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.1); }
-.btn:not(:disabled):active { transform: translateY(0); }
+.btn:disabled { opacity: 0.25; cursor: default; transform: none !important; box-shadow: none !important; }
+.btn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.08); }
+.btn:not(:disabled):active { transform: translateY(0px); }
 
 .btn-run {
   background: linear-gradient(135deg, #16A34A, #15803D);
   color: white;
-  box-shadow: 0 3px 10px rgba(22,163,74,0.35);
+  box-shadow: 0 3px 10px rgba(22,163,74,0.3);
 }
-.btn-run:not(:disabled):hover { box-shadow: 0 5px 16px rgba(22,163,74,0.5); }
+.btn-run:not(:disabled):hover { box-shadow: 0 5px 18px rgba(22,163,74,0.5); }
 
 .btn-stop {
   background: linear-gradient(135deg, #DC2626, #B91C1C);
   color: white;
-  box-shadow: 0 3px 10px rgba(220,38,38,0.35);
+  box-shadow: 0 3px 10px rgba(220,38,38,0.3);
 }
-.btn-stop:not(:disabled):hover { box-shadow: 0 5px 16px rgba(220,38,38,0.5); }
+.btn-stop:not(:disabled):hover { box-shadow: 0 5px 18px rgba(220,38,38,0.5); }
 
 .btn-sol {
-  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
   color: white;
-  box-shadow: 0 3px 10px rgba(124,58,237,0.35);
+  box-shadow: 0 3px 10px rgba(37,99,235,0.3);
 }
-.btn-sol:not(:disabled):hover { box-shadow: 0 5px 16px rgba(124,58,237,0.5); }
+.btn-sol:not(:disabled):hover { box-shadow: 0 5px 18px rgba(37,99,235,0.55); }
 
 /* Shortcut hint */
 .shortcut {
-  font-size: 10px; color: #374151;
+  font-size: 10px; color: #1E3A5F;
   font-family: 'Fira Code', monospace;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
   padding: 3px 7px; border-radius: 5px;
 }
 
@@ -212,14 +219,14 @@ main {
 }
 
 #canvas-frame {
-  border: 2px solid rgba(124,58,237,0.35);
-  border-radius: 12px; overflow: hidden;
+  border: 1.5px solid rgba(37,99,235,0.3);
+  border-radius: 14px; overflow: hidden;
   line-height: 0; flex-shrink: 0;
   box-shadow:
-    0 0 0 1px rgba(124,58,237,0.1),
-    0 0 30px rgba(109,40,217,0.3),
-    0 0 70px rgba(109,40,217,0.12),
-    0 8px 32px rgba(0,0,0,0.5);
+    0 0 0 1px rgba(37,99,235,0.08),
+    0 0 24px rgba(29,78,216,0.22),
+    0 0 60px rgba(29,78,216,0.08),
+    0 12px 40px rgba(0,0,0,0.6);
 }
 canvas { display: block; cursor: crosshair; }
 
@@ -227,8 +234,8 @@ canvas { display: block; cursor: crosshair; }
   display: flex; align-items: center; gap: 12px;
   flex-shrink: 0;
 }
-#score { font-size: 14px; font-weight: 700; color: #E2E8F0; letter-spacing: -0.01em; }
-#status { font-size: 11.5px; color: #4B5563; flex-shrink: 0; }
+#score { font-size: 13.5px; font-weight: 600; color: #CBD5E1; letter-spacing: -0.01em; }
+#status { font-size: 11px; color: #1E3A5F; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -244,7 +251,8 @@ canvas { display: block; cursor: crosshair; }
 <!-- ═══════════════════ MAIN APP ═════════════════════════════ -->
 <div id="app">
   <header>
-    <h1>🐍 Zukunftstag – Python Programmieren</h1>
+    <h1>Zukunftstag – Python Programmieren</h1>
+    <span class="badge">Python 3</span>
     <span class="hint">Strg + Enter = Starten</span>
   </header>
 
@@ -305,7 +313,7 @@ Verfügbare Befehle:
 Fange den Apfel mit der Katze!  Ziel: 20 Punkte
 
 Neue Befehle:
-  apfel.y += 5            → Apfel fällt nach unten
+  apfel.y += 3            → Apfel fällt nach unten
   apfel.beruehrt_rand()   → True = Apfel am Boden
   apfel.neu_setzen()      → Apfel startet neu oben
   katze.beruehrt(apfel)   → True = Kollision
@@ -358,7 +366,7 @@ def update():
         katze.gehe(6)
 
     # SCHRITT 1: Apfel fällt nach unten
-    # Tipp: apfel.y += 5
+    # Tipp: apfel.y += 3
 
 
     # SCHRITT 2: Apfel am Rand → neu setzen
@@ -386,7 +394,7 @@ def update():
         katze.gehe(6)
 
     # --- Apfel (aus Aufgabe 2 – schon fertig) ---
-    apfel.y += 5
+    apfel.y += 3
     if apfel.beruehrt_rand():
         apfel.neu_setzen()
     if katze.beruehrt(apfel):
@@ -438,7 +446,7 @@ def update():
         katze.gehe(6)
 
     # --- Apfel fällt ---
-    apfel.y += 5
+    apfel.y += 3
 
     # --- Rand berührt → neu setzen ---
     if apfel.beruehrt_rand():
@@ -461,7 +469,7 @@ def update():
         katze.gehe(6)
 
     # --- Apfel ---
-    apfel.y += 5
+    apfel.y += 3
     if apfel.beruehrt_rand():
         apfel.neu_setzen()
     if katze.beruehrt(apfel):
@@ -667,47 +675,96 @@ canvas.addEventListener('mousemove', e => {
 
 // ── Background helpers ────────────────────────────────────────
 function drawBg() {
-  // Sky gradient
+  // Rich sky gradient
   const sky = ctx.createLinearGradient(0, 0, 0, CH - 45);
-  sky.addColorStop(0, '#5BA8DC');
-  sky.addColorStop(1, '#A0D4F0');
+  sky.addColorStop(0,   '#3A85C8');
+  sky.addColorStop(0.5, '#6BAEE0');
+  sky.addColorStop(1,   '#B8DFF5');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, CW, CH - 45);
 
-  // Clouds
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  for (const [cx, cy, r] of [[65,40,30],[57,45,22],[77,46,20],[200,28,28],[192,33,20],[212,34,18],[372,52,25],[364,57,18],[384,58,16]]) {
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  // Sun with rays
+  const sx = CW - 48, sy = 42;
+  ctx.save();
+  ctx.translate(sx, sy);
+  // outer glow
+  const sunGlow = ctx.createRadialGradient(0, 0, 14, 0, 0, 52);
+  sunGlow.addColorStop(0, 'rgba(255,230,60,0.45)');
+  sunGlow.addColorStop(1, 'rgba(255,200,0,0)');
+  ctx.fillStyle = sunGlow;
+  ctx.beginPath(); ctx.arc(0, 0, 52, 0, Math.PI*2); ctx.fill();
+  // rays
+  ctx.strokeStyle = 'rgba(255,220,0,0.55)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * 20, Math.sin(a) * 20);
+    ctx.lineTo(Math.cos(a) * 33, Math.sin(a) * 33);
+    ctx.stroke();
   }
+  // sun disc
+  ctx.fillStyle = '#FFD93D';
+  ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#FFE76A';
+  ctx.beginPath(); ctx.arc(-4, -4, 7, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // Fluffy clouds
+  function cloud(cx, cy, scale) {
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(scale, scale);
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    for (const [dx, dy, r] of [
+      [0,0,18], [-22,6,14], [20,7,13], [-10,-8,13], [10,-8,11], [-32,12,10], [30,12,9]
+    ]) {
+      ctx.beginPath(); ctx.arc(dx, dy, r, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  cloud(75,  40, 1.0);
+  cloud(210, 28, 0.85);
+  cloud(370, 50, 0.75);
 
   // Meadow
-  ctx.fillStyle = '#5DA832';
+  const grass = ctx.createLinearGradient(0, CH - 45, 0, CH);
+  grass.addColorStop(0, '#5EBD2F');
+  grass.addColorStop(1, '#3D8A1A');
+  ctx.fillStyle = grass;
   ctx.fillRect(0, CH - 45, CW, 45);
-  ctx.fillStyle = '#6DC840';
-  ctx.fillRect(0, CH - 45, CW, 8);
-
-  // Sun
-  ctx.fillStyle = '#FFD700';
-  ctx.beginPath(); ctx.arc(CW - 42, 36, 28, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,220,0,0.25)';
-  ctx.beginPath(); ctx.arc(CW - 42, 36, 40, 0, Math.PI*2); ctx.fill();
+  // bright top edge
+  ctx.fillStyle = '#78D43A';
+  ctx.fillRect(0, CH - 45, CW, 6);
+  // subtle grass tufts
+  ctx.strokeStyle = '#4CAD22'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  for (let x = 8; x < CW; x += 18) {
+    const h = 4 + (x * 7 % 5);
+    ctx.beginPath(); ctx.moveTo(x, CH - 45); ctx.lineTo(x - 3, CH - 45 - h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + 5, CH - 45); ctx.lineTo(x + 8, CH - 45 - h + 1); ctx.stroke();
+  }
 }
 
 function drawHUD() {
   if (!punkteObj) return;
   const p = punkteObj.wert;
   // Score pill
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.beginPath(); ctx.roundRect(8, 6, 200, 28, 6); ctx.fill();
-  ctx.fillStyle = 'white'; ctx.font = 'bold 15px Arial';
-  ctx.fillText(`⭐ Punkte: ${p}`, 16, 25);
-  // Progress bar
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  ctx.beginPath(); ctx.roundRect(10, 38, CW - 20, 7, 3); ctx.fill();
-  const bw = Math.max(0, Math.min(1, p / ZIEL)) * (CW - 20);
+  ctx.fillStyle = 'rgba(0,0,0,0.38)';
+  ctx.beginPath(); ctx.roundRect(8, 6, 170, 26, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath(); ctx.roundRect(8, 6, 170, 26, 7); ctx.stroke();
+  ctx.fillStyle = 'white'; ctx.font = 'bold 14px Inter, Arial';
+  ctx.fillText(`★  ${p} / ${ZIEL}`, 16, 24);
+  // Progress bar track
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.roundRect(10, 36, CW - 20, 6, 3); ctx.fill();
+  // Progress bar fill (gradient green → yellow near end)
+  const frac = Math.max(0, Math.min(1, p / ZIEL));
+  const bw = frac * (CW - 20);
   if (bw > 0) {
-    ctx.fillStyle = '#22C55E';
-    ctx.beginPath(); ctx.roundRect(10, 38, bw, 7, 3); ctx.fill();
+    const barGrad = ctx.createLinearGradient(10, 0, 10 + (CW - 20), 0);
+    barGrad.addColorStop(0,   '#22C55E');
+    barGrad.addColorStop(0.7, '#4ADE80');
+    barGrad.addColorStop(1,   '#FACC15');
+    ctx.fillStyle = barGrad;
+    ctx.beginPath(); ctx.roundRect(10, 36, bw, 6, 3); ctx.fill();
   }
   // External label
   document.getElementById('score').textContent = `Punkte: ${p}  /  Ziel: ${ZIEL}`;
@@ -724,18 +781,36 @@ function drawMouseDot() {
 }
 
 function drawWinOverlay() {
-  ctx.fillStyle = 'rgba(220,252,231,0.93)';
-  ctx.beginPath(); ctx.roundRect(40, 75, CW - 80, 195, 14); ctx.fill();
-  ctx.strokeStyle = '#16A34A'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.roundRect(40, 75, CW - 80, 195, 14); ctx.stroke();
+  // dim the background
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // card
+  ctx.fillStyle = 'rgba(10,20,15,0.96)';
+  ctx.beginPath(); ctx.roundRect(50, 70, CW - 100, 210, 16); ctx.fill();
+  // card border
+  const borderGrad = ctx.createLinearGradient(50, 70, CW - 50, 280);
+  borderGrad.addColorStop(0, '#16A34A');
+  borderGrad.addColorStop(1, '#4ADE80');
+  ctx.strokeStyle = borderGrad; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(50, 70, CW - 100, 210, 16); ctx.stroke();
 
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#15803D'; ctx.font = 'bold 34px Arial';
-  ctx.fillText('🏆  GEWONNEN!  🏆', CW / 2, 138);
-  ctx.fillStyle = '#166534'; ctx.font = '15px Arial';
-  ctx.fillText(`Du hast ${ZIEL} Punkte gesammelt!`, CW / 2, 178);
-  ctx.fillStyle = '#4B7850'; ctx.font = '12px Arial';
-  ctx.fillText('Klicke "Starten" für eine neue Runde 🔄', CW / 2, 218);
+
+  // trophy + title
+  ctx.font = 'bold 40px Arial'; ctx.fillStyle = '#FFD700';
+  ctx.fillText('🏆', CW / 2, 130);
+  ctx.font = 'bold 28px Inter, Arial'; ctx.fillStyle = '#4ADE80';
+  ctx.fillText('GEWONNEN!', CW / 2, 170);
+
+  // sub text
+  ctx.font = '15px Inter, Arial'; ctx.fillStyle = '#A7F3D0';
+  ctx.fillText(`Du hast ${ZIEL} Punkte gesammelt!`, CW / 2, 202);
+
+  // hint
+  ctx.font = '12px Inter, Arial'; ctx.fillStyle = '#374151';
+  ctx.fillText('Klicke "Starten" für eine neue Runde', CW / 2, 252);
+
   ctx.textAlign = 'left';
 }
 
