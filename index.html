@@ -310,7 +310,7 @@ canvas { display: block; cursor: crosshair; width: 100%; height: 100%; }
       <div class="tab-bar">
         <button class="tab active" id="tab1" onclick="loadTask(1)">🐱 Aufgabe 1</button>
         <button class="tab"        id="tab2" onclick="loadTask(2)">🍎 Aufgabe 2</button>
-        <button class="tab"        id="tab3" onclick="loadTask(3)">🥚 Aufgabe 3</button>
+        <button class="tab"        id="tab3" onclick="loadTask(3)">🦕 Aufgabe 3</button>
       </div>
 
       <div id="desc"></div>
@@ -369,7 +369,7 @@ Neue Befehle:
   punkte.aendern(1)       → +1 Punkt`,
 
   3:
-`Aufgabe 3 – Komplettes Spiel 🐱🍎🥚
+`Aufgabe 3 – Komplettes Spiel 🐱🍎🥚🦕
 ────────────────────────────────────────
 Äpfel fangen = +1 Punkt  |  Eier berühren = −1
 Ziel: 20 Punkte!
@@ -380,7 +380,13 @@ Neue Befehle:
   ei.neu_setzen_mit_pause()   → Wartet 1 Sek., dann neu
   ei.knacke()                 → Crack-Animation
   punkte.aendern(-1)          → −1 Punkt
-  ei.in_animation             → True während Animation`,
+  ei.in_animation             → True während Animation
+
+BONUS 🦕 Dino-Nugget (erscheint automatisch!):
+  Fange ihn für +3 Punkte:
+  if katze.beruehrt(nugget):
+      punkte.aendern(3)
+      nugget.neu_setzen()`,
 };
 
 const TMPL_EASY = {
@@ -454,6 +460,12 @@ def update():
     #            punkte.aendern(-1)
 
 
+    # BONUS 🦕: Dino-Nugget fangen → +3 Punkte!
+    # Tipp: if katze.beruehrt(nugget):
+    #            punkte.aendern(3)
+    #            nugget.neu_setzen()
+
+
     pass
 `,
 };
@@ -503,6 +515,10 @@ def update():
     if not ei.in_animation and katze.beruehrt(ei):
         ei.knacke()
         punkte.aendern(-1)
+
+    if katze.beruehrt(nugget):
+        punkte.aendern(3)
+        nugget.neu_setzen()
 `,
 };
 
@@ -552,7 +568,13 @@ Neue Variablen:
   ei.neu_setzen_mit_pause()  → 1 Sek. Pause, dann neu
   punkte.aendern(-1)  → −1 Punkt
 
-Tipp: Kollision für Ei genauso wie für Apfel!`,
+Tipp: Kollision für Ei genauso wie für Apfel!
+
+BONUS 🦕 Dino-Nugget (erscheint automatisch!):
+  nugget.x, nugget.y  → Position des Nuggets
+  nugget.neu_setzen() → startet nach Pause neu
+  Kollision: abs(katze.x - nugget.x) < 30
+             and abs(katze.y - nugget.y) < 30`,
 };
 
 const TMPL_HARD = {
@@ -629,6 +651,11 @@ def update():
         elif abs(katze.x - ei.x) < ___ and abs(katze.y - ei.y) < ___:
             ei.knacke()
             punkte.aendern(___)
+
+    # BONUS 🦕: Dino-Nugget fangen!
+    # Tipp: if abs(katze.x - nugget.x) < ___ and abs(katze.y - nugget.y) < ___:
+    #            punkte.aendern(___)
+    #            nugget.neu_setzen()
 `,
 };
 
@@ -693,6 +720,10 @@ def update():
         elif abs(katze.x - ei.x) < 30 and abs(katze.y - ei.y) < 30:
             ei.knacke()
             punkte.aendern(-1)
+
+    if abs(katze.x - nugget.x) < 30 and abs(katze.y - nugget.y) < 30:
+        punkte.aendern(3)
+        nugget.neu_setzen()
 `,
 };
 
@@ -865,6 +896,108 @@ class Ei {
   }
 }
 
+// ── DinoNugget ────────────────────────────────────────────────
+class DinoNugget {
+  constructor() {
+    this.RADIUS = 20;
+    this._x = CW / 2;  this._y = CH + 300;
+    this._wait = 120 + Math.floor(Math.random() * 180); // 2-5 sec initial delay
+    this._speed = 2.5;
+  }
+  get x()  { return this._x; }
+  set x(v) { this._x = +v; }
+  get y()  { return this._y; }
+  // y is auto-managed; falling handled in tick()
+
+  neu_setzen() {
+    this._y   = CH + 300;
+    this._wait = 180 + Math.floor(Math.random() * 240); // 3-7 sec respawn delay
+  }
+
+  tick() {
+    if (this._wait > 0) {
+      if (--this._wait === 0) {
+        this._x = 40 + Math.random() * (CW - 80);
+        this._y = -20;
+      }
+    } else {
+      this._y += this._speed;
+      if (this._y > CH + 20) this.neu_setzen();
+    }
+  }
+
+  draw(ctx) {
+    if (this._wait > 0) return;
+    ctx.save();
+    ctx.translate(this._x, this._y);
+
+    // Nugget body
+    ctx.fillStyle   = '#C47A0A';
+    ctx.strokeStyle = '#8B5A05';
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.moveTo(-16, 2);
+    ctx.bezierCurveTo(-20, -8, -12, -16, -2, -16);
+    ctx.bezierCurveTo(6, -20, 16, -14, 20, -6);
+    ctx.bezierCurveTo(24, 2, 18, 12, 8, 15);
+    ctx.bezierCurveTo(-2, 18, -14, 12, -16, 2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Breading highlight
+    ctx.fillStyle = '#E8980E';
+    ctx.beginPath();
+    ctx.ellipse(-2, -6, 11, 7, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Crispy spots
+    ctx.fillStyle = '#F5B820';
+    ctx.beginPath(); ctx.arc(-8, -10, 2,   0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc( 4, -12, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(12,  -3, 1.5, 0, Math.PI * 2); ctx.fill();
+
+    // Dino spikes
+    ctx.fillStyle   = '#2D8B1A';
+    ctx.strokeStyle = '#1A5E0F';
+    ctx.lineWidth   = 1;
+    for (const [sx, sh] of [[-8, 8], [-1, 11], [6, 8]]) {
+      ctx.beginPath();
+      ctx.moveTo(sx - 4, -15);
+      ctx.lineTo(sx, -15 - sh);
+      ctx.lineTo(sx + 4, -15);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+
+    // Eye
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-7, 1, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(-6, 1, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-7, 0, 0.9, 0, Math.PI * 2); ctx.fill();
+
+    // Smile
+    ctx.strokeStyle = '#7B4500';
+    ctx.lineWidth   = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-2, 6);
+    ctx.quadraticCurveTo(3, 9, 8, 6);
+    ctx.stroke();
+
+    // +3 badge
+    ctx.fillStyle = 'rgba(255,215,0,0.92)';
+    ctx.beginPath(); ctx.roundRect(10, -8, 18, 13, 4); ctx.fill();
+    ctx.fillStyle = '#7B3F00';
+    ctx.font      = 'bold 9px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('+3', 19, 2);
+    ctx.textAlign = 'left';
+
+    ctx.restore();
+  }
+}
+
 // ── Punkte ────────────────────────────────────────────────────
 class Punkte {
   constructor() { this.wert = 0; }
@@ -872,7 +1005,7 @@ class Punkte {
 }
 
 // ── Game state ────────────────────────────────────────────────
-let katzeObj = null, apfelObj = null, eiObj = null, punkteObj = null;
+let katzeObj = null, apfelObj = null, eiObj = null, nuggetObj = null, punkteObj = null;
 let running = false, updateFn = null;
 
 const canvas = document.getElementById('cv');
@@ -1077,14 +1210,16 @@ function gameLoop() {
     return;
   }
 
-  if (eiObj) eiObj.tick();
+  if (eiObj)     eiObj.tick();
+  if (nuggetObj) nuggetObj.tick();
 
   // Draw frame
   ctx.clearRect(0, 0, CW, CH);
   drawBg();
-  if (apfelObj) apfelObj.draw(ctx);
-  if (eiObj)    eiObj.draw(ctx);
-  if (katzeObj) katzeObj.draw(ctx);
+  if (apfelObj)  apfelObj.draw(ctx);
+  if (nuggetObj) nuggetObj.draw(ctx);
+  if (eiObj)     eiObj.draw(ctx);
+  if (katzeObj)  katzeObj.draw(ctx);
   drawHUD();
   drawMouseDot();   // always visible target the cat chases
 
@@ -1164,14 +1299,16 @@ async function runCode() {
 
   // Create fresh game objects
   katzeObj  = new Katze();
-  apfelObj  = n >= 2 ? new Apfel() : null;
-  eiObj     = n >= 3 ? new Ei()    : null;
+  apfelObj  = n >= 2 ? new Apfel()      : null;
+  eiObj     = n >= 3 ? new Ei()         : null;
+  nuggetObj = n >= 3 ? new DinoNugget() : null;
   punkteObj = new Punkte();
 
   // Expose JS objects to Python
   pyodide.globals.set('katze',  katzeObj);
   pyodide.globals.set('apfel',  apfelObj);
   pyodide.globals.set('ei',     eiObj);
+  pyodide.globals.set('nugget', nuggetObj);
   pyodide.globals.set('punkte', punkteObj);
   // Hard mode: mouse coords as plain Python numbers (updated each frame in gameLoop)
   pyodide.globals.set('maus_x', mouseX);
